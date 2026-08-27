@@ -68,11 +68,64 @@ whenever the date-pinned status itself reports it en route.
 | Past | 6 h |
 
 **Client polling** pauses while the tab is hidden and stops once every leg has
-arrived. Multi-leg itineraries are fetched sequentially, not in parallel, to respect
-both APIs' ~1 request/second ceiling.
+arrived.
+
+**Pacing.** Multi-leg itineraries are fetched sequentially, not in parallel. Since
+2.0.0 requests to adsb.fi are also **spaced within a single leg**, not only between
+legs, so its free tier's 1 request/second ceiling is respected even by a one-leg
+lookup that fires several calls.
+
+**The background job is quota-scoped.** It refreshes only flights that are in the air
+or close to departure — the same windows above — and prunes rows it no longer needs. It
+does not walk every reservation on the instance.
 
 Responses are cached per reservation, so several people viewing the same trip share
-one lookup.
+one lookup. **A forced refresh is rate-limited per reservation** since 2.0.0: holding
+down the refresh button, or several trip members pressing it at once, can no longer
+turn one flight into a burst of billed calls.
+
+**The monthly ceiling is counted, not discovered.** AeroDataBox calls are counted per
+month; when the ceiling is reached the plugin **degrades to adsb.fi only** — live
+position, no schedule — instead of failing. That is the same shape as a keyless
+instance, and it is deliberate: a widget that still shows where the aircraft is beats
+a red error line. The **"Test AeroDataBox key"** button on the settings page reports
+the remaining allowance, which is the only way to see it directly.
+
+**A rejected key stops costing you calls.** If RapidAPI answers `401` or `403`, the key
+is remembered as invalid and no further calls are made with it until the key changes.
+Before 2.0.0 a typo'd or unsubscribed key was retried on every poll, by every viewer.
+
+## Keeping the other surfaces current
+
+The widget can only refresh what someone is looking at. Everything else the plugin
+feeds — trip warnings, the map and its route layer, the day plan, the reservations
+table column, the PDF, the calendar, the dashboard badge — used to be as stale as the
+last time a member opened the card. Three mechanisms close that gap:
+
+- **A background job** refreshes flights that are in the air or close to departure, on
+  the same windows the widget uses, and prunes rows for flights long past.
+- **Reservation events.** The plugin subscribes to edits and deletions, so a deleted
+  flight disappears from the map, the PDF and your calendar immediately rather than
+  lingering until the next refresh, and an edited flight number is re-detected the
+  next time the card is opened.
+- **A trip broadcast.** When one member refreshes or corrects a flight, the other
+  members' open cards are told at once instead of waiting out their own poll interval.
+
+## Notifications
+
+Alerts are deduplicated per flight so a delay that persists is announced once, not on
+every poll. Two things changed in 2.0.0:
+
+- **The notification is sent before the dedup baseline moves.** It used to advance
+  first, so a send that failed — for instance against TREK's 100-notifications-per-day
+  budget — marked the alert as delivered and it was never retried. A cancellation, the
+  one alert you cannot afford to lose, was lost exactly this way.
+- **Dedup state is keyed per leg.** An out-and-back itinerary that repeats a flight
+  number no longer collapses the two legs into one entry, so the return leg gets its
+  own alerts.
+
+Whether you get them at all, and from what delay, is per-user — see
+[Setup](Setup#4-your-own-notification-settings).
 
 ## Access control
 
@@ -84,10 +137,17 @@ rather than becoming a successful request. A reservation absent from the trip re
 `404`, identical to the non-member case, so membership cannot be probed by comparing
 responses.
 
-The userless hooks (trip warnings, map markers, PDF, calendar) *cannot* check
+The userless hooks (trip warnings, map markers and the map route layer, the day
+schedule, the reservations-table column, the trip card, PDF, calendar) *cannot* check
 anything — they get no acting user. That is why the trust decision is made on the
 write side: only the verified trip id is ever persisted, so those hooks can only
-render rows a member actually caused.
+render rows a member actually caused. The background job runs userless for the same
+reason and refreshes only rows that already exist.
+
+Since 2.0.0 the **trip id is normalised at the edge**, on the way in. A value like
+`07` used to be stored as written and then never matched by a hook looking up trip
+`7`, leaving cache rows that nothing could read and a flight that never appeared on
+the trip's surfaces.
 
 The booking reference (PNR) is deliberately **not** included in the payload — it is
 bearer-ish for airline "manage my booking" portals.
@@ -97,10 +157,10 @@ bearer-ish for airline "manage my booking" portals.
 Worth knowing before filing a feature request — these are platform limits, not
 oversights:
 
-- **No background push.** A userless job may not send notifications, so alerts fire
-  while TREK is open or the trip is viewed.
-- **No route line on TREK's own trip map.** The marker hook returns markers; there is
-  no polyline field. The plugin draws the route in its own bundled map instead.
+- **No background push.** A userless job still may not send notifications, so alerts
+  fire in a user context — while TREK is open or the trip is viewed. What the job
+  *does* fix is the data behind them: the trip warnings, map, day plan, table column,
+  PDF, calendar and dashboard badge are refreshed whether or not anyone is looking.
 - **No external images, fonts or map tiles.** The UI runs at an opaque origin under a
   strict CSP. The world map is inline SVG for exactly this reason.
 - **The widget cannot write to `ctx.config`.** It is read-only, which is why an

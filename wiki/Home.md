@@ -26,9 +26,15 @@ flight is right now.
 
 **When things go wrong** — departure *and* arrival delay, cancellation and diversion,
 gate changes. Delayed or cancelled flights also surface as native trip warnings in the
-planner, and you get a deduplicated bell/email notification while TREK is open.
+planner and as a badge on the trip card on your dashboard, and you get a deduplicated
+bell/email notification while TREK is open. Since 2.0.0 each user decides under
+**Settings → Plugins → Flight Tracker** whether to receive those alerts at all, and
+from how many minutes of delay.
 
-Requires **TREK 3.4.0 or newer**.
+Requires **TREK 4.0.0 or newer**. The range `>=4.0.0 <5.0.0` is enforced at install and
+re-checked at activation, with no admin override, so TREK 3.x instances stay on
+**1.8.0** — the store resolves "install latest" to the newest version an instance can
+run, and refuses an update that would take a working plugin out of compatibility.
 
 ## The widget in different states
 
@@ -48,10 +54,17 @@ screenshot above also exists as a `-light` variant in
 
 ## Other TREK surfaces it feeds
 
-Beyond the widget, your flights appear on the **trip map** (airports and the live
-aircraft), in the **trip PDF export** (date, flight, route, terminal/gate, belt, seat,
-status), in the **TREK calendar** with live-adjusted times, and as native **trip
-warnings** when something is delayed or cancelled.
+Beyond the widget, your flights appear on the **trip map** (airports, the live aircraft
+and the great-circle route line between the two airports), in the **day plan** with
+their block time counted into the day's travel total, as a live status column in the
+**reservations table**, in the **trip PDF export** (date, flight, route, terminal/gate,
+belt, seat, status), in the **TREK calendar** with live-adjusted times, as a badge on
+the **trip card** on your dashboard, and as native **trip warnings** when something is
+delayed or cancelled.
+
+A background job keeps all of those current for flights that are in the air or close to
+departure, so they are right even when nobody has the widget open, and reservation
+edits and deletions are picked up as they happen rather than hours later.
 
 ## Links
 
