@@ -1,7 +1,7 @@
 {
   "id": "flight-tracker",
   "name": "Flight Tracker",
-  "version": "1.8.0",
+  "version": "2.0.0",
   "apiVersion": 1,
   "author": "fbnlrz",
   "description": "Live flight status, schedule and airborne position for a flight reservation, from AeroDataBox and adsb.fi.",
@@ -9,7 +9,7 @@
   "license": "MIT",
   "icon": "Plane",
   "type": "widget",
-  "trek": ">=3.4.0 <4.0.0",
+  "trek": ">=4.0.0 <5.0.0",
   "nativeModules": false,
   "permissions": [
     "db:own",
@@ -17,10 +17,18 @@
     "db:meta",
     "notify:send",
     "weather:read",
+    "jobs:run",
+    "events:subscribe",
+    "ws:broadcast:trip",
     "hook:trip-warning-provider",
     "hook:map-marker-provider",
+    "hook:map-layer-provider",
+    "hook:day-schedule-provider",
+    "hook:table-contributor",
+    "hook:trip-card-provider",
     "hook:pdf-section-provider",
     "hook:calendar-source",
+    "hook:user-data",
     "http:outbound",
     "http:outbound:aerodatabox.p.rapidapi.com",
     "http:outbound:opendata.adsb.fi"
@@ -37,6 +45,12 @@
       "slot": "reservation-detail"
     }
   },
+  "actions": [
+    {
+      "key": "test_key",
+      "label": "Test AeroDataBox key"
+    }
+  ],
   "settings": [
     {
       "key": "aerodatabox_key",
@@ -45,7 +59,28 @@
       "scope": "instance",
       "required": false,
       "secret": true,
-      "hint": "Instance-wide, admin-managed. TREK renders no form for instance-scoped settings, so set it in the widget (admins see an 'Add AeroDataBox key' field on any flight) or via the admin API: PUT /api/admin/plugins/flight-tracker/config. A key set through the API always takes precedence over one entered in the widget. Get a free key at rapidapi.com/aedbx-aedbx/api/aerodatabox. Without it, only live position from adsb.fi is shown."
+      "hint": "Instance-wide, admin-managed: one key serves every user. Set it in the widget (admins see an 'Add AeroDataBox key' field on any flight) or via the admin API: PUT /api/admin/plugins/flight-tracker/config. A key set through the API always takes precedence over one entered in the widget. Get a free key at rapidapi.com/aedbx-aedbx/api/aerodatabox. Without it, only the live position from adsb.fi is shown."
+    },
+    {
+      "key": "notify_enabled",
+      "label": "Flight change notifications",
+      "input_type": "select",
+      "scope": "user",
+      "required": false,
+      "options": [
+        { "value": "on", "label": "On" },
+        { "value": "off", "label": "Off" }
+      ],
+      "hint": "Bell and email alerts for delays, gate changes, cancellations and diversions on your own flights. Defaults to on."
+    },
+    {
+      "key": "delay_threshold_min",
+      "label": "Alert me from this delay onwards (minutes)",
+      "input_type": "number",
+      "scope": "user",
+      "required": false,
+      "placeholder": "15",
+      "hint": "Delays shorter than this are not notified and are not raised as a trip warning. Defaults to 15 minutes."
     }
   ]
 }
