@@ -45,6 +45,15 @@ await fetch('/api/admin/plugins/flight-tracker/config', {
 Then **deactivate → activate** the plugin — this step is mandatory, `ctx.config` is
 only read at activation — and hard-refresh the trip tab.
 
+**Step 3 — confirm with the button.** Since 2.0.0 the settings page has **"Test
+AeroDataBox key"**: one call, and it tells you whether the key is accepted and how many
+requests remain this month. That answers in one click what steps 1 and 2 answer by
+elimination.
+
+> Since 2.0.0 a key RapidAPI rejects with `401` or `403` is **remembered as invalid**
+> and the plugin stops calling with it until the key changes — it no longer burns your
+> allowance retrying a typo on every poll. Saving a corrected key clears that state.
+
 ---
 
 ## No schedule, gate or delay — only the live position
@@ -58,8 +67,13 @@ If a key *is* set, check for:
 - **Too far out.** Schedule data is only fetched from about 48 h before departure, to
   protect the monthly quota. A flight next month legitimately shows only a countdown.
 - **A red error line** under the card — read it, then see the section above.
-- **Quota exhausted** (`429`). The free tier is ~600 requests/month; see
+- **Quota exhausted.** The free tier is ~600 requests/month. Since 2.0.0 the plugin
+  counts its own AeroDataBox calls and, at the ceiling, **degrades to adsb.fi only**
+  rather than erroring — so an exhausted month looks like a keyless instance: position
+  yes, schedule no. **"Test AeroDataBox key"** shows what is left. See
   [How it works](How-it-works#quota).
+- **A key the API rejected.** After a `401`/`403` the key is parked as invalid and not
+  retried until it changes; the test button says so plainly.
 
 ---
 
@@ -67,18 +81,36 @@ If a key *is* set, check for:
 
 - **Not a flight.** On hotels, trains and other reservation types the widget collapses
   to a 1 px sliver by design.
-- **TREK older than 3.4.0.** The plugin declares `>=3.4.0 <4.0.0` and will not install.
-- **Not activated**, or its permissions were never approved (Admin → Plugins).
+- **TREK older than 4.0.0.** Since 2.0.0 the plugin declares `>=4.0.0 <5.0.0` and will
+  neither install nor activate below that; see the next section.
+- **Not activated**, or its permissions were never approved (Admin → Plugins). 2.0.0
+  requests eight permissions 1.8.0 did not, so an **update needs re-approval** before
+  it runs.
+
+## It will not install, or stopped activating after a TREK upgrade
+
+2.0.0 requires **TREK 4.0.0 or newer** (`>=4.0.0 <5.0.0`). TREK checks that range at
+install *and* re-checks it at activation, and there is no admin override — the range is
+the plugin's own statement about where it works.
+
+- **On TREK 3.x**, the store serves **1.8.0** and keeps it there. "Install latest"
+  resolves to the newest version the instance can actually run, and an update that
+  would take a working plugin out of compatibility is refused rather than performed, so
+  nothing breaks by itself. Upgrade TREK to 4.x when you want 2.0.0.
+- **Refused with `TREK_VERSION_INCOMPATIBLE`** means exactly this mismatch; the reason
+  is kept on the plugin row, so Admin → Plugins keeps showing why.
 
 ## "Add AeroDataBox key" is not visible
 
-Three possible reasons, in order of likelihood:
+Two possible reasons, in order of likelihood:
 
 1. **A key is already active.** The field is hidden once a key is set — that is
    intended. To replace or remove it, see
    [Changing or removing the key](Setup#changing-or-removing-the-key).
 2. **You are not an admin.** Non-admins only ever see the hint line.
-3. **TREK below 3.4.** `req.user.isAdmin` is always `false` there, so nobody qualifies.
+
+To check whether the active key still works, and what is left of this month's quota,
+use **"Test AeroDataBox key"** on the plugin's settings page.
 
 ---
 
@@ -122,6 +154,17 @@ Fixed in v1.8.0, and it affected **every user without an API key**. With no airp
 coordinates the map had a single point to frame, and zoomed so far in that the bundled
 coarse world outline had no geometry to draw. It now frames a continent.
 
+## Some airports are missing from TREK's trip map
+
+Fixed in v2.0.0. A busy trip could fill the host's marker budget, and the flight
+airports were the markers dropped. They are no longer sacrificed to a crowded map.
+
+## A flight appears in the widget but on none of the trip's other surfaces
+
+Fixed in v2.0.0. The trip id was stored exactly as it arrived, so a value like `07`
+wrote cache rows that the trip warning, map, day-plan, table, PDF and calendar hooks —
+all looking up trip `7` — never matched. Ids are now normalised at the edge.
+
 ## The aircraft looks frozen
 
 If the ADS-B position is more than 5 minutes old the dot stops pulsing and the age is
@@ -159,6 +202,32 @@ Fixed in v1.8.0: the notification and trip-warning strings were hardcoded German
 regardless of locale. They now follow the widget's locale and fall back to English.
 Trip warnings rendered by the planner have no user context available, so those are
 always English.
+
+## Too many alerts, or none at all
+
+Since v2.0.0 this is yours to set, under **Settings → Plugins → Flight Tracker**:
+`notify_enabled` turns the bell and email alerts off for you alone, and
+`delay_threshold_min` (default 15) sets the delay from which you want to hear about it.
+The threshold also decides when a delay becomes a **trip warning**, so raising it
+quiets the planner too. See [Setup](Setup#4-your-own-notification-settings).
+
+Before 2.0.0 the thresholds were fixed and the only way to stop the alerts was for an
+admin to remove the instance-wide API key — which switched off schedule, gate and delay
+data for everybody.
+
+## A cancellation was never announced
+
+Fixed in v2.0.0. The dedup baseline was advanced *before* the notification was sent, so
+a send that failed — for example against TREK's 100-notifications-per-day budget — left
+the alert marked as delivered and it was never retried. Cancellations, arriving in a
+burst alongside the delays that preceded them, were the likeliest casualty. The
+notification is now sent first and the baseline moves only after it succeeds.
+
+## An out-and-back itinerary only alerts once
+
+Fixed in v2.0.0. Notification state was keyed by flight number, so a return leg
+repeating the outbound's number collapsed into the same entry and its own changes
+looked like duplicates. State is now kept per leg.
 
 ---
 

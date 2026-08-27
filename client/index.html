@@ -16,7 +16,7 @@
        the root to a 1px, overflow-hidden sliver — effectively invisible. */
     :root[data-ft-empty] #app { padding: 0; height: 1px; overflow: hidden; }
     /* keep the chrome (footer, hints, empty states, inputs) aligned with panel text */
-    .ft-foot, .ft-err, .ft-empty, .ft-hint, .ft-keyrow, .ft-editrow, #app > .ft-skel { padding-left: 14px; padding-right: 14px; }
+    .ft-foot, .ft-err, .ft-empty, .ft-hint, .ft-keyrow, .ft-editrow, .ft-note, #app > .ft-skel { padding-inline: 14px; }
     svg { flex-shrink: 0; }
     .ft-icon { width: 1em; height: 1em; vertical-align: -0.125em; }
 
@@ -51,7 +51,7 @@
        Sized one notch down widget-wide so a 320px sidebar still fits a cluster. */
     #app .trek-chip { font-size: 11px; padding: 3px 9px; gap: 5px; max-width: 100%; min-width: 0; }
     #app .trek-chip .ft-icon { width: 12px; height: 12px; }
-    .ft-head .trek-chip { margin-left: auto; }   /* status chip stays right-aligned */
+    .ft-head .trek-chip { margin-inline-start: auto; }   /* status chip stays end-aligned (mirrors in RTL) */
 
     /* key/value inside a chip — the one thing the kit has no component for.
        .ft-v always carries the truncation so a long value can never force the
@@ -96,24 +96,27 @@
     .ft-btn-xs:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
     /* Narrow sidebar: the rail SHRINKS but never stacks — stacking would destroy
-       the column alignment at exactly the width where it matters most. */
+       the column alignment at exactly the width where it matters most.
+       NB: this is the NARROW-DESKTOP branch and it deliberately excludes the phone.
+       A phone viewport is narrow too, but shrinking type and touch targets there is
+       exactly the wrong direction — the phone branch below grows them instead. */
     @media (max-width: 340px) {
-      .ft-band { grid-template-columns: 50px minmax(0, 1fr); gap: 5px 8px; }
-      .ft-blabel { font-size: 9px; letter-spacing: .01em; }
-      #app .trek-chip { font-size: 10px; padding: 3px 8px; gap: 4px; }
-      .ft-num { font-size: 14px; }
-      .ft-wxtail { display: none; }
+      :root:not([data-form-factor="phone"]) .ft-band { grid-template-columns: 50px minmax(0, 1fr); gap: 5px 8px; }
+      :root:not([data-form-factor="phone"]) .ft-blabel { font-size: 9px; letter-spacing: .01em; }
+      :root:not([data-form-factor="phone"]) #app .trek-chip { font-size: 10px; padding: 3px 8px; gap: 4px; }
+      :root:not([data-form-factor="phone"]) .ft-num { font-size: 14px; }
+      :root:not([data-form-factor="phone"]) .ft-wxtail { display: none; }
     }
 
     .ft-route { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: start; gap: 6px; }
     .ft-ap { min-width: 0; }
-    .ft-ap.arr { text-align: right; }
+    .ft-ap.arr { text-align: end; }
     .ft-iata { font-size: 18px; font-weight: 700; line-height: 1.05; }
     .ft-apname { color: var(--text-muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ft-arrow { color: var(--text-faint); display: flex; justify-content: center; padding-top: 3px; }
 
     .ft-times { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 6px; margin-top: 8px; }
-    .ft-times .arr { text-align: right; }
+    .ft-times .arr { text-align: end; }
     .ft-times .mid { }
     .ft-t-label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); }
     .ft-t-sched { font-size: 15px; font-weight: 600; }
@@ -123,13 +126,17 @@
     .ft-strike { text-decoration: line-through; color: var(--text-faint); font-weight: 400; }
 
     /* progress bar (en route) */
+    /* Logical insets so the bar runs departure -> arrival in BOTH directions: in RTL
+       the route grid already mirrors, and a physically-left-anchored bar would then
+       fill away from the departure airport. */
     .ft-prog { position: relative; height: 8px; margin: 12px 2px 4px; }
-    .ft-prog .track, .ft-prog .fill { position: absolute; left: 0; top: 3px; height: 2px; border-radius: 2px; }
-    .ft-prog .track { right: 0; background: var(--border-faint, rgba(0,0,0,.12)); }
+    .ft-prog .track, .ft-prog .fill { position: absolute; inset-inline-start: 0; top: 3px; height: 2px; border-radius: 2px; }
+    .ft-prog .track { inset-inline-end: 0; background: var(--border-faint, rgba(0,0,0,.12)); }
     .ft-prog .fill { background: var(--success, #16a34a); }
-    .ft-prog .end { position: absolute; top: 2px; width: 4px; height: 4px; border-radius: 50%; background: var(--text-faint, #999); }
-    .ft-prog .end.r { right: 0; background: var(--border-primary, #bbb); }
+    .ft-prog .end { position: absolute; top: 2px; inset-inline-start: 0; width: 4px; height: 4px; border-radius: 50%; background: var(--text-faint, #999); }
+    .ft-prog .end.r { inset-inline-start: auto; inset-inline-end: 0; background: var(--border-primary, #bbb); }
     .ft-prog .dot { position: absolute; top: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--success, #16a34a); box-shadow: 0 0 0 2px var(--bg-card, #fff); transform: translateX(-50%); }
+    :root[dir="rtl"] .ft-prog .dot { transform: translateX(50%); }
 
     .ft-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success,#16a34a); flex: 0 0 auto; }
     /* auto-fit, not repeat(3,1fr): registration moved out to a chip, so two tiles
@@ -140,22 +147,24 @@
     /* minimap (bundled inline vector world — no external tiles) */
     .ft-minimap { margin-top: 10px; border-radius: var(--radius-md,12px); overflow: hidden; background: var(--ft-surface); border: 1px solid var(--ft-surface-line); }
     .ft-minimap svg { display: block; width: 100%; height: 132px; }
-    @media (prefers-reduced-motion: no-preference) { .ft-planepulse { animation: ftpulse 2.2s ease-out infinite; } }
+    @media (prefers-reduced-motion: no-preference) { :root:not([data-reduce-motion]) .ft-planepulse { animation: ftpulse 2.2s ease-out infinite; } }
 
     /* layover connector */
-    .ft-layover { display: flex; align-items: center; gap: 8px; margin: 2px 0 2px 4px; font-size: 11px; color: var(--text-muted); }
-    .ft-layover .ln { width: 2px; align-self: stretch; min-height: 16px; background: var(--border-faint); border-radius: 2px; margin-left: 8px; }
+    .ft-layover { display: flex; align-items: center; gap: 8px; margin: 2px 0; margin-inline-start: 4px; font-size: 11px; color: var(--text-muted); }
+    .ft-layover .ln { width: 2px; align-self: stretch; min-height: 16px; background: var(--border-faint); border-radius: 2px; margin-inline-start: 8px; }
     .ft-layover.tight { color: var(--warning,#d97706); font-weight: 600; }
     .ft-layover.tight .ln { background: var(--warning,#d97706); }
     .ft-layover.broken { color: var(--danger,#dc2626); font-weight: 600; }
     .ft-layover.broken .ln { background: var(--danger,#dc2626); }
 
     /* collapsed completed leg */
-    .ft-collapsed { width: 100%; text-align: left; font: inherit; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: 12px; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-md,12px); background: var(--ft-surface); border: 1px solid var(--ft-surface-line); }
+    .ft-collapsed { width: 100%; text-align: start; font: inherit; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: 12px; color: var(--text-secondary); cursor: pointer; border-radius: var(--radius-md,12px); background: var(--ft-surface); border: 1px solid var(--ft-surface-line); }
     .ft-collapsed:hover { background: color-mix(in srgb, var(--text-primary) 6%, transparent); }
     .ft-collapsed:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
     .ft-collapsed .ft-icon { color: var(--success,#16a34a); }
-    .ft-collapsed .grow { flex: 1; }
+    /* the route pair is three flex items, not one text run, so RTL reorders the
+       endpoints around the (mirrored) separator instead of leaving a stray glyph */
+    .ft-collapsed .grow { flex: 1; min-width: 0; display: flex; align-items: center; gap: 5px; }
     .ft-collapsed .rt { font-weight: 600; color: var(--text-primary); }
 
     .ft-homez { font-size: 11px; color: var(--text-faint); margin-top: 1px; }
@@ -186,17 +195,65 @@
     .ft-skel.line { height: 12px; margin: 8px 0; }
     .ft-skel.big { height: 56px; margin-bottom: 10px; }
 
-    /* motion — all guarded */
+    /* motion — all guarded TWICE: by the OS media query AND by [data-reduce-motion],
+       which the kit sets on <html> from appearance.reducedMotion. That is TREK's own
+       in-app switch; a user who turns motion off inside TREK while their OS still says
+       "no-preference" was previously still getting the pulse, shimmer and spinner. */
     @media (prefers-reduced-motion: no-preference) {
-      button.ft-iconbtn:active, .ft-collapsed:active { transform: scale(.96); }
-      .ft-iconbtn, .ft-collapsed { transition: transform 120ms cubic-bezier(.23,1,.32,1), background-color 140ms, color 140ms; }
-      .ft-dot.pulse { animation: ftpulse 2.2s ease-out infinite; }
+      :root:not([data-reduce-motion]) button.ft-iconbtn:active,
+      :root:not([data-reduce-motion]) .ft-collapsed:active { transform: scale(.96); }
+      :root:not([data-reduce-motion]) .ft-iconbtn,
+      :root:not([data-reduce-motion]) .ft-collapsed { transition: transform 120ms cubic-bezier(.23,1,.32,1), background-color 140ms, color 140ms; }
+      :root:not([data-reduce-motion]) .ft-dot.pulse { animation: ftpulse 2.2s ease-out infinite; }
       @keyframes ftpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--success,#16a34a) 55%, transparent); } 70% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--success,#16a34a) 0%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
-      .ft-spin { animation: ftspin .9s linear infinite; }
+      :root:not([data-reduce-motion]) .ft-spin { animation: ftspin .9s linear infinite; }
       @keyframes ftspin { to { transform: rotate(360deg); } }
-      .ft-skel { animation: ftshimmer 1.4s ease infinite; }
+      :root:not([data-reduce-motion]) .ft-skel { animation: ftshimmer 1.4s ease infinite; }
       @keyframes ftshimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
     }
+
+    /* stale / throttled / quota / rejected-key notes, just under the footer */
+    .ft-note { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; font-size: 11px; line-height: 1.35; color: var(--text-muted); }
+    .ft-note .ft-icon { width: 12px; height: 12px; margin-top: 2px; }
+    .ft-note--warn { color: var(--warning,#d97706); }
+    .ft-note--danger { color: var(--danger,#dc2626); }
+    /* a load-bearing URL rendered as copyable text, so it survives a blocked popup */
+    .ft-url { display: block; margin-top: 3px; font-size: 10px; word-break: break-all; user-select: all; -webkit-user-select: all; }
+
+    /* RTL: the route chevron is the one icon with a direction. Only icons carrying
+       .ft-rtlflip mirror — the alert/up/down glyphs must never be flipped. */
+    :root[dir="rtl"] .ft-rtlflip { transform: scaleX(-1); }
+
+    /* ---- PHONE (viewport.formFactor === 'phone'; the kit sets data-form-factor) ----
+       Deliberately independent of the max-width:340px narrow-desktop branch above.
+       Four rules decide whether embedded UI feels native on a phone: targets >= 44px,
+       inputs >= 16px, feedback on :active (touch has no :hover), and no drop shadows.
+       Surfaces branch onto the --m-* mobile token family BY PRESENCE, so the same CSS
+       is correct on desktop where those variables do not exist. */
+    :root[data-form-factor="phone"] { --ft-surface: var(--m-card, rgba(0,0,0,.045)); --ft-surface-line: var(--m-cbr, rgba(0,0,0,.07)); }
+    :root[data-form-factor="phone"][data-theme="dark"] { --ft-surface: var(--m-card, rgba(0,0,0,.32)); --ft-surface-line: var(--m-cbr, rgba(255,255,255,.06)); }
+    [data-form-factor="phone"] #app { padding: 6px 2px; }
+    [data-form-factor="phone"] .ft-iconbtn { min-width: 44px; min-height: 44px; padding: 12px; border-radius: 12px; justify-content: center; }
+    [data-form-factor="phone"] .ft-iconbtn .ft-icon { width: 20px; height: 20px; }
+    [data-form-factor="phone"] .ft-actions { gap: 4px; }
+    [data-form-factor="phone"] .ft-btn-xs { min-height: 44px; padding: 10px 16px; font-size: 13px; }
+    [data-form-factor="phone"] .ft-btn-xs .ft-icon { width: 15px; height: 15px; }
+    [data-form-factor="phone"] .ft-keytoggle { min-height: 44px; padding: 12px 0; font-size: 13px; }
+    [data-form-factor="phone"] .ft-keytoggle .ft-icon { width: 16px; height: 16px; }
+    [data-form-factor="phone"] .ft-collapsed { min-height: 48px; padding: 12px; }
+    /* iOS zooms the page — and stays zoomed — on any input below 16px */
+    [data-form-factor="phone"] #app .trek-input { font-size: 16px; min-height: 44px; }
+    [data-form-factor="phone"] #app .trek-btn { min-height: 44px; box-shadow: none; }
+    /* A drop shadow over the translucent mobile surface reads as a sticker. */
+    [data-form-factor="phone"] .ft-prog .dot { box-shadow: 0 0 0 2px var(--m-card, var(--bg-card, #fff)); }
+    /* Touch never fires :hover, so a tap had no feedback at all; and this feedback
+       must survive reduced motion, hence opacity rather than a transform. */
+    [data-form-factor="phone"] .ft-iconbtn:hover { background: none; color: var(--text-muted); }
+    [data-form-factor="phone"] .ft-collapsed:hover { background: var(--ft-surface); }
+    [data-form-factor="phone"] .ft-iconbtn:active,
+    [data-form-factor="phone"] .ft-keytoggle:active,
+    [data-form-factor="phone"] .ft-btn-xs:active,
+    [data-form-factor="phone"] .ft-collapsed:active { opacity: .62; }
   </style>
 </head>
 <body>
@@ -218,6 +275,8 @@
       up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
       down: '<path d="M12 5v14M6 13l6 6 6-6"/>',
       key: '<circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.5 12.5 20 3M16 7l3 3M18 5l2 2"/>',
+      ext: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/>',
+      wifi: '<path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M2 9a15 15 0 0 1 20 0M12 20h.01"/>',
       scan: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"/>',
       check: '<path d="M20 6 9 17l-5-5"/>',
       clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -361,7 +420,14 @@
         h: 'h', min: 'min', remaining: 'in', nosignal: 'Position temporarily out of ADS-B coverage',
         inbound: 'Aircraft inbound', boarding: 'Boarding', yourtime: 'your time', couldnt: "Couldn't read a flight number — enter it:",
         keycleared: 'Key removed', keynotallowed: 'Only a TREK admin can change this key',
-        keyconfig: 'No AeroDataBox key configured — a TREK admin can set it in the plugin configuration to unlock schedule, gate and delay data.' },
+        keyconfig: 'No AeroDataBox key configured — a TREK admin can set it in the plugin configuration to unlock schedule, gate and delay data.',
+        stale: 'Not updating — retrying', throttled: 'Already refreshed a moment ago — showing the cached result',
+        keyrejected: 'The AeroDataBox key was rejected. Schedule, gate and delay data stay unavailable until an admin replaces it — the live position below keeps working.',
+        quotaleft: 'AeroDataBox requests left this month',
+        keyless: 'No key needed for the live adsb.fi position — that part always works.',
+        keyget: 'Get a free RapidAPI key',
+        redetectTitle: 'Re-detect flights?', redetectMsg: 'This discards the flight number saved on this reservation and reads it from the booking again.',
+        redetectYes: 'Re-detect', cancel: 'Cancel' },
       de: { noflight: 'Keine Flugnummer mit dieser Buchung verknüpft.', link: 'Verknüpfen', enter: 'Flugnr. (z.B. LH400)',
         save: 'Speichern', change: 'Flugnummer ändern', redetect: 'Flüge neu aus Buchung erkennen', redetected: 'Aus Buchung neu erkannt',
         dep: 'Abflug', arr: 'Ankunft', terminal: 'Terminal', gate: 'Gate', belt: 'Band', seat: 'Sitz',
@@ -376,7 +442,14 @@
         h: 'Std', min: 'Min', remaining: 'noch', nosignal: 'Position gerade ohne ADS-B-Empfang',
         inbound: 'Flieger im Anflug', boarding: 'Boarding', yourtime: 'deine Zeit', couldnt: 'Flugnummer nicht erkannt — bitte eingeben:',
         keycleared: 'Key entfernt', keynotallowed: 'Nur ein TREK-Admin kann diesen Key ändern',
-        keyconfig: 'Kein AeroDataBox-Key konfiguriert — ein TREK-Admin kann ihn in der Plugin-Konfiguration setzen (für Fahrplan, Gate und Verspätung).' }
+        keyconfig: 'Kein AeroDataBox-Key konfiguriert — ein TREK-Admin kann ihn in der Plugin-Konfiguration setzen (für Fahrplan, Gate und Verspätung).',
+        stale: 'Keine Aktualisierung — neuer Versuch läuft', throttled: 'Gerade eben schon aktualisiert — angezeigt wird der zwischengespeicherte Stand',
+        keyrejected: 'Der AeroDataBox-Key wurde abgelehnt. Fahrplan, Gate und Verspätung bleiben ohne Funktion, bis ein Admin ihn ersetzt — die Live-Position unten funktioniert weiterhin.',
+        quotaleft: 'AeroDataBox-Abfragen diesen Monat übrig',
+        keyless: 'Für die Live-Position von adsb.fi wird kein Key gebraucht — dieser Teil funktioniert immer.',
+        keyget: 'Kostenlosen RapidAPI-Key holen',
+        redetectTitle: 'Flüge neu erkennen?', redetectMsg: 'Damit wird die für diese Buchung gespeicherte Flugnummer verworfen und erneut aus der Buchung gelesen.',
+        redetectYes: 'Neu erkennen', cancel: 'Abbrechen' }
     };
     var SL = {
       en: { Expected: 'Scheduled', EnRoute: 'En route', Departed: 'Departed', Arrived: 'Landed', Delayed: 'Delayed', Canceled: 'Cancelled', Cancelled: 'Cancelled', Diverted: 'Diverted', Boarding: 'Boarding', GateClosed: 'Gate closed', CheckIn: 'Check-in', Approaching: 'Approaching', Unknown: 'Scheduled' },
@@ -402,6 +475,32 @@
     var app = document.getElementById('app');
     var L = STR.en, LS = SL.en, ctx = null, editing = false, keyOpen = false, timer = null, busy = false, last = null;
     var currentPhase = 'active', expanded = {}, fmtNum0 = null, fmtNum3 = null, use12h = false, mapLinks = [];
+    // consecutive failed fetches — 1 is a muted note, 3+ is a warning (see footNotes)
+    var failCount = 0;
+    // the host auto-answers a SECOND concurrent confirm with `false` and shows nothing,
+    // so a double-tap on re-detect would silently look like a cancel. One at a time.
+    var confirmOpen = false;
+    var ADSB_URL = 'https://globe.adsb.fi/?icao=';
+    var RAPIDAPI_URL = 'https://rapidapi.com/aedbx-aedbx/api/aerodatabox';
+
+    // ---- request generation guard -------------------------------------------
+    // Every invoke captures a monotonically increasing token AND the reservation it
+    // was fired for. Without it, switching reservation while a /status is in flight
+    // let the old response resolve and paint ANOTHER reservation's flight into this
+    // card; and two overlapping fetches could apply out of order. A response is
+    // applied only when it is still for the reservation in view and is not older
+    // than one already applied.
+    var reqSeq = 0, appliedSeq = 0;
+    function resId() { return (ctx && ctx.reservationId) || null; }
+    function begin() { return { n: ++reqSeq, res: resId() }; }
+    function forCurrent(g) { return !!g && g.res === resId(); }         // still the same card?
+    function current(g) { return forCurrent(g) && g.n >= appliedSeq; }  // ...and not superseded?
+    function applied(g) { if (g && g.n > appliedSeq) appliedSeq = g.n; }
+
+    function rtl() { return !!(ctx && ctx.dir === 'rtl'); }
+    // The one directional glyph in the copy. Both call sites sit in a flex row whose
+    // items reorder under dir=rtl, so only the arrowhead has to be turned around.
+    function arrowSep() { return rtl() ? '←' : '→'; }
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
     function el(html) { var d = document.createElement('div'); d.innerHTML = html; return d; }
@@ -417,6 +516,14 @@
     function nfmt(n) { return fmtNum0 ? fmtNum0.format(Math.round(n)) : String(Math.round(n)); }
     function fmtAlt(a) { return (a === 'ground' || a == null) ? '—' : nfmt(a) + ' ft'; }
     function fmtSpd(s) { return s == null ? '—' : nfmt(s) + ' kt'; }
+    // fmtAlt / fmtSpd stay in ft / kt on purpose: those are AVIATION units, not
+    // user-preference units — an ADS-B altitude is a flight level and reads wrong in
+    // metres even to a metric traveller. Only ground distance follows formats.distanceUnit.
+    function imperial() { var u = ctx && ctx.formats && ctx.formats.distanceUnit; return !!u && /imperial|^mi/i.test(String(u)); }
+    // Distance is computed and carried in km everywhere (the inbound-ETA maths divides
+    // by 1.852 to get nautical miles against a knots ground speed, so the internal unit
+    // must stay km) and is converted only here, at the point of display.
+    function fmtDist(km) { return imperial() ? nfmt(km * 0.621371) + ' mi' : nfmt(km) + ' km'; }
     function fmtCoord(la, lo) {
       var f = function (v, p, n) { var d = fmtNum3 ? fmtNum3.format(Math.abs(v)) : Math.abs(v).toFixed(3); return d + '°' + (v >= 0 ? p : n); };
       return f(la, 'N', 'S') + ' ' + f(lo, 'E', 'W');
@@ -513,7 +620,9 @@
     }
     function cluster(parts) { var p = parts.filter(Boolean); return p.length ? '<div class="trek-cluster ft-cl">' + p.join('') + '</div>' : ''; }
     function stat(k, v) { return '<div class="ft-stat"><div class="v">' + v + '</div><div class="k">' + esc(k) + '</div></div>'; }
-    function num(v, sm) { return '<span class="ft-num' + (sm ? ' ft-num--sm' : '') + '">' + v + '</span>'; }
+    // `attrs` carries the data-tick hooks that let the 30 s local ticker rewrite this
+    // one text node without an innerHTML rebuild (see tickLocal).
+    function num(v, sm, attrs) { return '<span class="ft-num' + (sm ? ' ft-num--sm' : '') + '"' + (attrs || '') + '>' + v + '</span>'; }
     // NB: not called `sub` — journeyHeader() has a local `sub` array that would shadow it.
     function faint(t) { return '<span class="trek-faint ft-sub">' + esc(t) + '</span>'; }
 
@@ -590,7 +699,7 @@
 
       var route = '<div class="ft-route">' +
         '<div class="ft-ap dep"><div class="ft-iata">' + esc(depIata) + '</div>' + (depName ? '<div class="ft-apname">' + esc(depName) + '</div>' : '') + '</div>' +
-        '<div class="ft-arrow">' + svg('arrow') + '</div>' +
+        '<div class="ft-arrow">' + svg('arrow', 'ft-rtlflip') + '</div>' +
         '<div class="ft-ap arr"><div class="ft-iata">' + esc(arrIata) + '</div>' + (arrName ? '<div class="ft-apname">' + esc(arrName) + '</div>' : '') + '</div></div>';
 
       var times = '<div class="ft-times">' + timeCol(L.dep, t.dep, s ? s.depDelayMin : null, false) + '<div class="mid"></div>' + timeCol(L.arr, t.arr, s ? s.delayMin : null, true) + '</div>';
@@ -696,11 +805,19 @@
         var dms = toMs(s && s.departure && (s.departure.revised || s.departure.scheduled));
         var ams = toMs(s && s.arrival && (s.arrival.revised || s.arrival.scheduled));
         var r1 = [], r2 = [];
-        if (dms && ams && ams > dms) r1.push(num(Math.round(Math.max(0, Math.min(1, (Date.now() - dms) / (ams - dms))) * 100) + ' %', true) + faint(L.flown));
-        if (ams && ams > Date.now()) { var rem = fmtDur(Math.round((ams - Date.now()) / 60000)); if (rem) r1.push(faint(L.remaining) + num(rem, true)); }
-        if (arrC) r2.push(num(nfmt(haversineKm(planeC, arrC)) + ' km', true) + faint(L.togo));
-        if (live.hex) { var mi = mapLinks.length; mapLinks.push(live.hex); r2.push('<a class="trek-btn trek-btn--ghost ft-btn-xs" href="#" data-map="' + mi + '">' + svg('map') + esc(L.openmap) + '</a>'); }
+        if (dms && ams && ams > dms) r1.push(num(Math.round(Math.max(0, Math.min(1, (Date.now() - dms) / (ams - dms))) * 100) + ' %', true, ' data-tick="pct" data-dep="' + dms + '" data-arr="' + ams + '"') + faint(L.flown));
+        if (ams && ams > Date.now()) { var rem = fmtDur(Math.round((ams - Date.now()) / 60000)); if (rem) r1.push(faint(L.remaining) + num(rem, true, ' data-tick="rem" data-arr="' + ams + '"')); }
+        if (arrC) r2.push(num(fmtDist(haversineKm(planeC, arrC)), true) + faint(L.togo));
+        if (live.hex) {
+          var mi = mapLinks.length; mapLinks.push(live.hex);
+          r2.push('<a class="trek-btn trek-btn--ghost ft-btn-xs" href="#" data-map="' + mi + '">' + svg('map') + esc(L.openmap) + '</a>');
+        }
         var row = function (p) { return p.length ? '<div class="ft-progrow">' + p.join('<span class="ft-grow"></span>') + '</div>' : ''; };
+        // The button goes through trek:openExternal (the sandbox has no allow-popups).
+        // The URL is NOT also printed as text: this link is an optional convenience,
+        // not load-bearing — the coordinates below are the actual data, and a
+        // permanently visible raw URL is noise in a card this dense. (The RapidAPI
+        // link in the keyless admin state IS load-bearing and does print its URL.)
         progBody = row(r1) + (mapHtml ? '' : prog) + row(r2) +
           '<div class="trek-faint ft-sub ft-coords">' + esc(fmtCoord(live.lat, live.lon)) + '</div>';
       }
@@ -723,7 +840,7 @@
       var to = leg.to || (s && s.arrival && s.arrival.iata) || '';
       return '<button type="button" class="ft-collapsed" data-exp="' + idx + '" aria-expanded="false">' + svg('check') +
         '<span class="rt">' + esc(withSpace(leg.number)) + '</span>' +
-        '<span class="grow">' + esc(from) + ' → ' + esc(to) + '</span>' +
+        '<span class="grow"><span>' + esc(from) + '</span><span>' + arrowSep() + '</span><span>' + esc(to) + '</span></span>' +
         '<span>' + esc(LS[s.status] || s.status) + '</span></button>';
     }
 
@@ -754,7 +871,7 @@
       if (broken) { cls += ' broken'; extra = ' · ' + L.brokenConn; }
       else if (mins != null && mins < 45) { cls += ' tight'; extra = ' · ' + L.tightConn; }
       var warn = broken || (mins != null && mins < 45);
-      return '<div class="' + cls + '"><span class="ln"></span><span>' + svg(warn ? 'alert' : 'arrow') + ' ' + esc(L.layover) + (at ? ' ' + esc(at) : '') + (dur ? ' · ' + dur : '') + extra + '</span></div>';
+      return '<div class="' + cls + '"><span class="ln"></span><span>' + svg(warn ? 'alert' : 'arrow', warn ? '' : 'ft-rtlflip') + ' ' + esc(L.layover) + (at ? ' ' + esc(at) : '') + (dur ? ' · ' + dur : '') + extra + '</span></div>';
     }
 
     function journeyHeader(data, legs) {
@@ -763,7 +880,10 @@
       var dest = b.dest || (legs[legs.length - 1] && legs[legs.length - 1].to) || '';
       var stops = [origin];
       for (var i = 0; i < legs.length; i++) { var to = legs[i].to || (legs[i].status && legs[i].status.arrival && legs[i].status.arrival.iata); if (to) stops.push(to); }
-      var route = stops.map(esc).join(' <span style="color:var(--text-faint)">→</span> ');
+      // .ft-journey .rt is a flex row, so each stop and separator is its own flex item
+      // and the whole chain reorders under dir=rtl — only the glyph has to turn around.
+      var route = stops.map(function (x) { return '<span>' + esc(x) + '</span>'; })
+        .join('<span style="color:var(--text-faint)">' + arrowSep() + '</span>');
       // overall status = worst; aggregate arrival delay = last leg's delay
       var order = { Canceled: 5, Cancelled: 5, Diverted: 4, Delayed: 3, EnRoute: 2, Departed: 2, Approaching: 2, Boarding: 1 };
       var worst = null, worstScore = -1;
@@ -786,6 +906,29 @@
         if (dep && dep > now) return dep;
       }
       return (data.booking && data.booking.depMs && data.booking.depMs > now) ? data.booking.depMs : null;
+    }
+
+    // The footer prints "Updated 4m" straight off data.updatedAt, and that timestamp
+    // keeps ticking up whether or not the fetch is still succeeding — so a dropped
+    // network or a RapidAPI 429 was completely invisible: the card just quietly froze.
+    // These notes say what the timestamp cannot.
+    function note(text, mod, icon) {
+      return '<div class="ft-note' + (mod || '') + '">' + svg(icon || 'alert') + '<span>' + esc(text) + '</span></div>';
+    }
+    function footNotes(data) {
+      var out = '';
+      // Server rejected by AeroDataBox (401/403). Schedule data is gone until an admin
+      // fixes it, but the adsb.fi half is unaffected — say so, or it reads as "broken".
+      if (data.keyInvalid) out += note(L.keyrejected, ' ft-note--warn', 'key');
+      // One miss is a blip; three in a row is a state the user should know about.
+      if (failCount >= 1) out += note(L.stale, failCount >= 3 ? ' ft-note--warn' : '', 'alert');
+      // A forced refresh that was rate-limited returns the CACHED payload — without
+      // this note the button looks like it did nothing.
+      if (data.throttled) out += note(L.throttled, '', 'clock');
+      if (typeof data.quotaRemaining === 'number' && data.quotaRemaining < 50) {
+        out += note(L.quotaleft + ': ' + nfmt(data.quotaRemaining), '', 'alert');
+      }
+      return out;
     }
 
     function collapseEmpty() {
@@ -813,7 +956,7 @@
         html += '<div class="ft-banner">' + svg('alert') + esc(withSpace(cl.number) + ' ' + (LS[cl.status.status] || cl.status.status)) + '</div>';
       } else if (data.booking && data.booking.phase !== 'past') {
         var nd = nextDepartureMs(data, legs);
-        if (nd) { var cd = fmtCountdown(nd); if (cd) html += '<div class="ft-countdown">' + svg('plane') + '<span>' + esc(L.departsIn) + ' <b>' + esc(cd) + '</b></span></div>'; }
+        if (nd) { var cd = fmtCountdown(nd); if (cd) html += '<div class="ft-countdown">' + svg('plane') + '<span>' + esc(L.departsIn) + ' <b data-tick="cd" data-dep="' + nd + '">' + esc(cd) + '</b></span></div>'; }
       }
 
       if (legs.length > 1) html += journeyHeader(data, legs);
@@ -828,13 +971,13 @@
       } else {
         html += '<p class="ft-empty">' + esc(data.hint ? L.couldnt : L.noflight) + '</p>' +
           '<div class="ft-editrow"><input class="trek-input" id="ft-in" placeholder="' + esc(L.enter) + '" aria-label="' + esc(L.enter) + '" />' +
-          '<button class="trek-btn trek-btn--primary" id="ft-save">' + esc(L.link) + '</button></div>' +
-          '<div class="ft-keyrow"><button class="ft-keytoggle" id="ft-redetect">' + svg('scan') + ' ' + esc(L.redetect) + '</button></div>';
+          '<button type="button" class="trek-btn trek-btn--primary" id="ft-save">' + esc(L.link) + '</button></div>' +
+          '<div class="ft-keyrow"><button type="button" class="ft-keytoggle" id="ft-redetect">' + svg('scan') + ' ' + esc(L.redetect) + '</button></div>';
       }
 
       if (editing && legs.length) {
         html += '<div class="ft-editrow"><input class="trek-input" id="ft-in" value="' + esc(withSpace((legs[0] && legs[0].number) || '')) + '" placeholder="' + esc(L.enter) + '" aria-label="' + esc(L.enter) + '" />' +
-          '<button class="trek-btn trek-btn--primary" id="ft-save">' + esc(L.save) + '</button></div>';
+          '<button type="button" class="trek-btn trek-btn--primary" id="ft-save">' + esc(L.save) + '</button></div>';
       }
 
       // AeroDataBox key — instance-wide. The gate is data.canSetKey, computed by
@@ -848,28 +991,35 @@
       // existing key is a rare, deliberate act — it lives in the README's console
       // command (POST /api/plugins/flight-tracker/key with an empty apiKey), not on
       // every widget. Only the two actionable states render anything.
+      // Both keyless branches used to be dead ends: they said what was missing and
+      // offered nowhere to go, and neither ever mentioned that the plugin's OTHER
+      // half — the live adsb.fi position — needs no key at all. Say both.
       if (data.applicable !== false && legs.length && !data.hasKey) {
         if (data.canSetKey) {
           html += '<div class="ft-keyrow">';
           if (keyOpen) {
             html += '<div class="ft-editrow"><input class="trek-input" id="ft-keyin" type="password" placeholder="' + esc(L.keyph) + '" aria-label="' + esc(L.keyph) + '" />' +
-              '<button class="trek-btn trek-btn--primary" id="ft-keysave">' + esc(L.save) + '</button></div>' +
+              '<button type="button" class="trek-btn trek-btn--primary" id="ft-keysave">' + esc(L.save) + '</button></div>' +
               '<p class="ft-hint">' + esc(L.keyhint) + '</p>';
           } else {
-            html += '<button class="ft-keytoggle" id="ft-keyt">' + svg('key') + ' ' + esc(L.keyadd) + '</button>';
+            html += '<button type="button" class="ft-keytoggle" id="ft-keyt">' + svg('key') + ' ' + esc(L.keyadd) + '</button>';
           }
+          html += '<div><button type="button" class="ft-keytoggle" id="ft-keyurl">' + svg('ext') + ' ' + esc(L.keyget) + '</button>' +
+            '<span class="trek-faint ft-sub ft-url">' + esc(RAPIDAPI_URL) + '</span></div>' +
+            '<p class="ft-hint ft-keyadmin">' + svg('wifi') + ' ' + esc(L.keyless) + '</p>';
           html += '</div>';
         } else {
-          html += '<div class="ft-keyrow"><p class="ft-hint ft-keyadmin">' + svg('key') + ' ' + esc(L.keyconfig) + '</p></div>';
+          html += '<div class="ft-keyrow"><p class="ft-hint ft-keyadmin">' + svg('key') + ' ' + esc(L.keyconfig) + '</p>' +
+            '<p class="ft-hint ft-keyadmin">' + svg('wifi') + ' ' + esc(L.keyless) + '</p></div>';
         }
       }
 
       if (legs.length) {
         html += '<div class="ft-foot"><span class="ft-updated">' + esc(L.updated) + ' ' + relTime(data.updatedAt) + (data.source === 'detected' ? ' · ' + esc(L.detected) : '') + '</span><span class="ft-actions">' +
-          '<button class="ft-iconbtn" id="ft-redetect" title="' + esc(L.redetect) + '" aria-label="' + esc(L.redetect) + '">' + svg('scan') + '</button>' +
-          '<button class="ft-iconbtn" id="ft-edit" title="' + esc(L.change) + '" aria-label="' + esc(L.change) + '">' + svg('edit') + '</button>' +
-          '<button class="ft-iconbtn" id="ft-refresh" title="' + esc(L.refresh) + '" aria-label="' + esc(L.refresh) + '">' + svg('refresh') + '</button>' +
-          '</span></div>';
+          '<button type="button" class="ft-iconbtn" id="ft-redetect" title="' + esc(L.redetect) + '" aria-label="' + esc(L.redetect) + '">' + svg('scan') + '</button>' +
+          '<button type="button" class="ft-iconbtn" id="ft-edit" title="' + esc(L.change) + '" aria-label="' + esc(L.change) + '">' + svg('edit') + '</button>' +
+          '<button type="button" class="ft-iconbtn" id="ft-refresh" title="' + esc(L.refresh) + '" aria-label="' + esc(L.refresh) + '">' + svg('refresh') + '</button>' +
+          '</span></div>' + footNotes(data);
       }
       if (data.errors && data.errors.length && legs.length) html += '<div class="ft-err">' + esc(data.errors.join(' · ')) + '</div>';
 
@@ -883,12 +1033,15 @@
       var e = document.getElementById('ft-edit'); if (e) e.addEventListener('click', function () { editing = !editing; render(last); });
       var r = document.getElementById('ft-refresh'); if (r) r.addEventListener('click', function () { doRefresh(r); });
       document.querySelectorAll('#ft-redetect').forEach(function (rd) { rd.addEventListener('click', function () { redetect(rd); }); });
-      document.querySelectorAll('.ft-collapsed[data-exp]').forEach(function (c) { c.addEventListener('click', function () { expanded[c.getAttribute('data-exp')] = true; render(last); }); });
-      app.querySelectorAll('a[data-map]').forEach(function (a) { a.addEventListener('click', function (ev) { ev.preventDefault(); var h = mapLinks[+a.getAttribute('data-map')]; if (h) window.trek.openExternal('https://globe.adsb.fi/?icao=' + encodeURIComponent(h)); }); });
+      document.querySelectorAll('.ft-collapsed[data-exp]').forEach(function (c) { c.addEventListener('click', function () { expanded[c.getAttribute('data-exp')] = true; saveExpanded(); render(last); }); });
+      app.querySelectorAll('a[data-map]').forEach(function (a) { a.addEventListener('click', function (ev) { ev.preventDefault(); var h = mapLinks[+a.getAttribute('data-map')]; if (h) window.trek.openExternal(ADSB_URL + encodeURIComponent(h)); }); });
       var kt = document.getElementById('ft-keyt'); if (kt) kt.addEventListener('click', function () { keyOpen = true; render(last); });
+      var ku = document.getElementById('ft-keyurl'); if (ku) ku.addEventListener('click', function (ev) { ev.preventDefault(); if (window.trek.openExternal) window.trek.openExternal(RAPIDAPI_URL); });
       var ks = document.getElementById('ft-keysave'), ki = document.getElementById('ft-keyin');
       if (ks && ki) { var gk = function () { saveKey(ki.value); }; ks.addEventListener('click', gk); ki.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); gk(); } }); }
     }
+
+    function spin(btn, on) { var v = btn && btn.querySelector && btn.querySelector('svg'); if (v) v.classList[on ? 'add' : 'remove']('ft-spin'); }
 
     // Persist the instance-wide AeroDataBox key. The server re-checks admin rights
     // and answers 403 if they are missing, so this is a convenience gate only.
@@ -896,20 +1049,85 @@
       if (busy) return;
       busy = true;
       var clearing = !String(v || '').trim();
+      var g = begin();
       try {
         await window.trek.invoke('/key', { method: 'POST', body: { apiKey: v } });
+        if (!forCurrent(g)) { busy = false; return; }
+        applied(g);
         keyOpen = false;
         window.trek.notify('success', clearing ? L.keycleared : L.keysaved);
+        // doRefresh has its own `busy` guard now, so hand the flag back first or the
+        // follow-up refresh would be swallowed and the card would keep the old state.
+        busy = false;
         await doRefresh(null);
+        return;
       } catch (e) {
-        window.trek.notify('error', (e && (e.code === 403 || e.status === 403)) ? L.keynotallowed : (e.message || 'error'));
+        if (forCurrent(g)) window.trek.notify('error', (e && (e.code === 403 || e.status === 403)) ? L.keynotallowed : (e.message || 'error'));
       }
       busy = false;
     }
 
-    async function saveNumber(v) { if (busy) return; busy = true; try { var d = await window.trek.invoke('/set', { method: 'POST', body: { tripId: ctx.tripId, reservationId: ctx.reservationId, flightNumber: v, locale: (ctx && ctx.locale) || '' } }); editing = false; last = d; render(d); } catch (e) { window.trek.notify('error', e.message || 'error'); } busy = false; }
-    async function redetect(btn) { if (busy) return; busy = true; if (btn) { var v = btn.querySelector('svg'); if (v) v.classList.add('ft-spin'); } try { var d = await window.trek.invoke('/set', { method: 'POST', body: { tripId: ctx.tripId, reservationId: ctx.reservationId, flightNumber: '', locale: (ctx && ctx.locale) || '' } }); editing = false; expanded = {}; last = d; render(d); window.trek.notify('success', L.redetected); } catch (e) { window.trek.notify('error', e.message || 'error'); } busy = false; }
-    async function doRefresh(btn) { if (btn) { var v = btn.querySelector('svg'); if (v) v.classList.add('ft-spin'); } try { var d = await window.trek.invoke('/refresh', { method: 'POST', body: { tripId: ctx.tripId, reservationId: ctx.reservationId, locale: (ctx && ctx.locale) || '' } }); last = d; render(d); } catch (e) { window.trek.notify('error', e.message || 'error'); if (btn) { var v2 = btn.querySelector('svg'); if (v2) v2.classList.remove('ft-spin'); } } }
+    async function saveNumber(v) {
+      if (busy) return;
+      busy = true;
+      var g = begin();
+      try {
+        var d = await window.trek.invoke('/set', { method: 'POST', body: { tripId: ctx.tripId, reservationId: ctx.reservationId, flightNumber: v, locale: (ctx && ctx.locale) || '' } });
+        if (current(g)) { applied(g); failCount = 0; editing = false; last = d; render(d); }
+      } catch (e) {
+        if (forCurrent(g)) window.trek.notify('error', e.message || 'error');
+      }
+      busy = false;
+    }
+
+    // Destructive: an empty flightNumber deletes the manual override AND the ctx.meta
+    // mirror, with no undo. `danger: false` is passed EXPLICITLY — the host defaults
+    // `danger` to true, and a red "delete" dialog overstates a re-detect.
+    async function redetect(btn) {
+      if (busy) return;
+      if (window.trek.confirm) {
+        if (confirmOpen) return;   // a 2nd concurrent confirm is auto-answered false, invisibly
+        confirmOpen = true;
+        var ok = false;
+        try {
+          ok = await window.trek.confirm({ title: L.redetectTitle, message: L.redetectMsg, confirmLabel: L.redetectYes, cancelLabel: L.cancel, danger: false });
+        } catch (e) { ok = false; }
+        confirmOpen = false;
+        if (!ok) return;
+        if (busy) return;          // the dialog was open for a while; re-check
+      }
+      busy = true;
+      spin(btn, true);
+      var g = begin();
+      try {
+        var d = await window.trek.invoke('/set', { method: 'POST', body: { tripId: ctx.tripId, reservationId: ctx.reservationId, flightNumber: '', locale: (ctx && ctx.locale) || '' } });
+        if (current(g)) {
+          applied(g); failCount = 0; editing = false; expanded = {}; saveExpanded(); last = d; render(d);
+          window.trek.notify('success', L.redetected);
+        }
+      } catch (e) {
+        if (forCurrent(g)) window.trek.notify('error', e.message || 'error');
+      }
+      spin(btn, false);
+      busy = false;
+    }
+
+    // Guarded like the other mutators: every POST /refresh forces a per-leg
+    // AeroDataBox fetch server-side, so a double-tap costs two quota units.
+    async function doRefresh(btn) {
+      if (busy) return;
+      busy = true;
+      spin(btn, true);
+      var g = begin();
+      try {
+        var d = await window.trek.invoke('/refresh', { method: 'POST', body: { tripId: ctx.tripId, reservationId: ctx.reservationId, locale: (ctx && ctx.locale) || '' } });
+        if (current(g)) { applied(g); failCount = 0; last = d; render(d); }
+      } catch (e) {
+        if (forCurrent(g)) window.trek.notify('error', e.message || 'error');
+      }
+      spin(btn, false);   // also on SUCCESS — render() may have replaced the node, which is harmless
+      busy = false;
+    }
 
     // Screen-reader announcements. The widget's whole premise is that it updates
     // itself, yet none of it was announced. A blanket aria-live on #app would be
@@ -953,14 +1171,24 @@
 
     async function load() {
       if (!ctx || !ctx.reservationId) { render(null); return; }
+      var g = begin();
       try {
         var d = await window.trek.invoke('/status?tripId=' + encodeURIComponent(ctx.tripId || '') + '&reservationId=' + encodeURIComponent(ctx.reservationId) + '&locale=' + encodeURIComponent((ctx && ctx.locale) || ''));
+        // Dropped, not rendered: the card may have moved to another reservation while
+        // this was in flight, or a newer response may already be on screen.
+        if (!current(g)) return;
+        applied(g);
+        failCount = 0;
         announce(d);
         last = d;
         if (!interactive()) render(d);
       } catch (e) {
-        // keep the last good data on a transient poll failure instead of wiping it
+        if (!forCurrent(g)) return;
+        // keep the last good data on a transient poll failure instead of wiping it —
+        // but repaint so the footer can admit that it is no longer updating
+        failCount++;
         if (!last) app.innerHTML = '<p class="ft-err">' + esc(e.message || 'error') + '</p>';
+        else if (!interactive()) render(last);
       }
     }
 
@@ -971,7 +1199,7 @@
 
     // Self-scheduling poll: pause while the tab is hidden, stop once the flight is
     // done, poll slowly for far-future flights — to spare the AeroDataBox quota.
-    var pollT = null, visWired = false;
+    var pollT = null, tickT = null, visWired = false, lastPollKey = null;
     function pollDelay() {
       if (!last) return 60000;
       var b = last.booking || {}, legs = last.legs || [];
@@ -980,12 +1208,96 @@
       if (b.phase === 'upcoming') return 600000;
       return 60000;
     }
+    // Everything pollDelay() actually depends on, as one comparable string. The host
+    // re-sends context on every theme/accent/density/motion/locale/format change, and
+    // re-arming the timer on each of those pushed the next poll further and further
+    // out (or restarted a 600 s wait) for no reason.
+    function pollKey() {
+      if (!last) return 'none';
+      var b = last.booking || {}, legs = last.legs || [];
+      var allArrived = !!legs.length && legs.every(function (l) { return l.status && l.status.status === 'Arrived'; });
+      return (b.phase || '') + '|' + (allArrived ? '1' : '0');
+    }
     function scheduleNext() {
       if (pollT) { clearTimeout(pollT); pollT = null; }
+      if (tickT) { clearInterval(tickT); tickT = null; }
+      lastPollKey = pollKey();
       var d = pollDelay();
-      if (d > 0) pollT = setTimeout(tick, d);
+      if (d > 0) { pollT = setTimeout(tick, d); tickT = setInterval(tickLocal, 30000); }
     }
     async function tick() { pollT = null; if (!document.hidden) await load(); scheduleNext(); }
+
+    // Local clock tick — NO fetch, NO innerHTML. The `upcoming` poll is 600 s, so
+    // "Departs in 2 h 14 min" could be ten minutes stale while looking authoritative.
+    // Only the three genuinely time-derived text nodes are rewritten, which is why
+    // this can never fight interactive(): it touches no input and no focused node.
+    function tickLocal() {
+      var nodes = app.querySelectorAll('[data-tick]');
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i], kind = n.getAttribute('data-tick');
+        if (kind === 'cd') {
+          var t = fmtCountdown(+n.getAttribute('data-dep'));
+          // departure time reached: hide the row rather than print a stale number —
+          // the next poll rebuilds the card with the real post-departure state
+          if (t == null) { var row = n.parentNode && n.parentNode.parentNode; if (row && row.classList && row.classList.contains('ft-countdown')) row.style.display = 'none'; }
+          else n.textContent = t;
+        } else if (kind === 'pct') {
+          var dep = +n.getAttribute('data-dep'), arr = +n.getAttribute('data-arr');
+          if (dep && arr && arr > dep) n.textContent = Math.round(Math.max(0, Math.min(1, (Date.now() - dep) / (arr - dep))) * 100) + ' %';
+        } else if (kind === 'rem') {
+          var a2 = +n.getAttribute('data-arr');
+          if (a2 && a2 > Date.now()) { var r = fmtDur(Math.round((a2 - Date.now()) / 60000)); if (r) n.textContent = r; }
+        }
+      }
+    }
+
+    // ---- per-tab UI state (trek.session) -------------------------------------
+    // Which completed legs the user opened is pure view state, so it belongs in the
+    // host's per-tab store rather than in the plugin's database. Scope 'trip', keyed
+    // by reservation. Quotas are 32 keys / 64-char keys / 1 KiB per value, so the
+    // value is a bare array of leg indices — and every failure is swallowed: a lost
+    // expand is a non-event, and this must never break the card.
+    function sessionKey() { var r = resId(); return r ? ('exp:' + String(r)).slice(0, 64) : null; }
+    function hasSession() { return !!(window.trek.session && window.trek.session.get && window.trek.session.set); }
+    function restoreExpanded(forRes) {
+      var k = sessionKey();
+      if (!k || !hasSession()) return Promise.resolve();
+      var p;
+      try { p = window.trek.session.get(k, { scope: 'trip' }); } catch (e) { return Promise.resolve(); }
+      if (!p || !p.then) return Promise.resolve();
+      return p.then(function (v) {
+        // the card may already have moved on while the read was in flight
+        if (!Array.isArray(v) || resId() !== forRes) return;
+        for (var i = 0; i < v.length; i++) { var n = parseInt(v[i], 10); if (!isNaN(n)) expanded[n] = true; }
+      }, function () {});
+    }
+    function saveExpanded() {
+      var k = sessionKey();
+      if (!k || !hasSession()) return;
+      var idx = [];
+      for (var i in expanded) { if (expanded[i]) { var n = parseInt(i, 10); if (!isNaN(n)) idx.push(n); } }
+      try { var p = window.trek.session.set(k, idx, { scope: 'trip' }); if (p && p.then) p.then(null, function () {}); } catch (e) {}
+    }
+
+    // ---- live refresh pings (trek.onEvent) -----------------------------------
+    // The server broadcasts plugin:flight-tracker:updated to the trip from /refresh
+    // and /set, so another traveller forcing a refresh or fixing the flight number
+    // lands on your card at once. Events are name-only and only arrive while a
+    // planner has the trip joined, so the poll above stays the floor, not a backup.
+    var evtT = null, evtWired = false;
+    function wireEvents() {
+      if (evtWired || !window.trek.onEvent) return;
+      evtWired = true;
+      window.trek.onEvent(function (event, tripId) {
+        if (!resId()) return;
+        if (tripId != null && ctx && ctx.tripId != null && String(tripId) !== String(ctx.tripId)) return;
+        var name = String(event || '');
+        if (name !== 'plugin:flight-tracker:updated' && name.indexOf('reservation:') !== 0) return;
+        // a /set fans out several events at once — coalesce into one fetch
+        if (evtT) clearTimeout(evtT);
+        evtT = setTimeout(function () { evtT = null; if (!document.hidden) load(); }, 1500);
+      });
+    }
 
     function applyLocale(m) {
       var de = (m.locale || '').toLowerCase().indexOf('de') === 0;
@@ -1003,8 +1315,18 @@
       applyTokens(m);
       applyLocale(m);
       setupFormats(m);
-      if (m.reservationId !== prev) { editing = false; keyOpen = false; expanded = {}; last = null; render(null); load().then(scheduleNext); }
-      else { if (last) render(last); scheduleNext(); }
+      wireEvents();
+      if (m.reservationId !== prev) {
+        editing = false; keyOpen = false; expanded = {}; last = null; failCount = 0; render(null);
+        restoreExpanded(m.reservationId).then(load).then(scheduleNext);
+      } else {
+        // A repeated context is a THEME/ACCENT/DENSITY/MOTION/LOCALE/FORMAT change,
+        // not new data. Repainting unconditionally wiped a half-typed flight number
+        // or a half-pasted API key, so defer exactly like load() does...
+        if (last && !interactive()) render(last);
+        // ...and only re-arm the poll when what it is scheduled from actually moved.
+        if (pollKey() !== lastPollKey) scheduleNext();
+      }
       if (!visWired) {
         visWired = true;
         document.addEventListener('visibilitychange', function () { if (!document.hidden) load().then(scheduleNext); });

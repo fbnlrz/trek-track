@@ -1,3 +1,4 @@
 node_modules/
 plugin.zip
 test/
+.trek-dev/

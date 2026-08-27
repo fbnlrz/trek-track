@@ -4,14 +4,17 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "dev": "npx -y trek-plugin-sdk dev",
-    "pack": "npx -y trek-plugin-sdk pack",
+    "dev": "trek-plugin dev",
+    "pack": "trek-plugin pack",
+    "validate": "trek-plugin validate .",
+    "status": "trek-plugin status",
     "build:airlines": "node scripts/build-airlines.js",
     "test": "node --test \"test/*.test.js\"",
     "test:render": "node test/render-test.js",
-    "screenshots": "node scripts/make-screenshots.js"
+    "screenshots": "node scripts/make-screenshots.js",
+    "store-shot": "node scripts/make-store-shot.js"
   },
   "devDependencies": {
-    "trek-plugin-sdk": "^1.5.0"
+    "trek-plugin-sdk": "file:vendor/trek-plugin-sdk-1.6.0.tgz"
   }
 }

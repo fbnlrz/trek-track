@@ -5,7 +5,11 @@ under each reservation card in the trip planner and shows the real-time status o
 flight — combining scheduled data from **AeroDataBox** with the actual aircraft
 position from the free **adsb.fi** open-data network.
 
-Requires **TREK 3.4.0 or newer**.
+Requires **TREK 4.0.0 or newer** (`>=4.0.0 <5.0.0`). TREK checks that range at install
+*and* again at activation, and there is no admin override — so on a TREK 3.x instance
+the store keeps serving **1.8.0**, which stays the supported build there. "Install
+latest" resolves to the newest version an instance can actually run, and an update that
+would push a working plugin out of its range is refused rather than performed.
 
 📖 **[Full documentation in the wiki](https://github.com/fbnlrz/trek-track/wiki)** —
 [Setup](https://github.com/fbnlrz/trek-track/wiki/Setup) ·
@@ -18,6 +22,8 @@ Requires **TREK 3.4.0 or newer**.
 ## Setup
 
 1. **Admin → Plugins** — install and activate the plugin, then approve its permissions.
+   2.0.0 requests eight permissions 1.8.0 did not, so **updating needs re-approval**
+   before it runs again.
 2. Open a trip and expand a flight reservation. The tracker appears beneath it. The
    flight number is detected from the booking; if not, type it once and it is
    remembered. The **live adsb.fi position works with no key**.
@@ -29,11 +35,21 @@ Requires **TREK 3.4.0 or newer**.
 The key is **instance-wide**: one admin sets it once and everyone benefits. Once a key
 is active the field disappears, since it is a set-once setting. Non-admins never see
 it. There is also an admin config API for scripted setup, and it takes precedence over
-the in-widget key.
+the in-widget key. The plugin's settings page carries a **“Test AeroDataBox key”**
+button: it makes one AeroDataBox call and reports whether the key is accepted and how
+many requests are left this month.
+
+Every user then has two settings of their own under **Settings → Plugins → Flight
+Tracker**: **`notify_enabled`** (on/off, default on) turns the bell/email alerts off
+for you alone, and **`delay_threshold_min`** (default 15) sets the delay from which you
+want to hear about it. The threshold also governs when a delay is raised as a trip
+warning. Before 2.0.0 the thresholds were hardcoded and the only way to stop the alerts
+was for an admin to remove the instance-wide API key, which disabled the plugin for
+everybody.
 
 > **Full setup, including how to change or remove a key, why TREK renders no settings
-> form for it, and what to do when RapidAPI says “You are not subscribed to this
-> API”** — see **[Setup](https://github.com/fbnlrz/trek-track/wiki/Setup)** and
+> form for the instance key, and what to do when RapidAPI says “You are not subscribed
+> to this API”** — see **[Setup](https://github.com/fbnlrz/trek-track/wiki/Setup)** and
 > **[Troubleshooting](https://github.com/fbnlrz/trek-track/wiki/Troubleshooting)**.
 
 ## What it does
@@ -60,14 +76,29 @@ the in-widget key.
   position older than 5 minutes is marked stale rather than drawn as if live.
 - **Before departure:** a boarding-time estimate, an **inbound-aircraft** read-out
   (“your plane is on its way, ~40 min out”), and the arrival time in your own timezone.
-- **Native TREK integration:** flights also appear on the **trip map**, in the **trip
-  PDF export** (date, route, terminal/gate, belt, seat, status), and in the **TREK
-  calendar** with live-adjusted times.
+- **Native TREK integration:** flights also appear on the **trip map** — airports, the
+  live aircraft, and the **great-circle route line** drawn between them, flown part
+  solid and the rest dashed — in the **day plan** with their block time counted into
+  the day's travel total, as a live **status column** in the reservations table, in the
+  **trip PDF export** (date, route, terminal/gate, belt, seat, status), and in the
+  **TREK calendar** with live-adjusted times.
+- **A badge on your dashboard.** A delayed or cancelled flight marks the trip card on
+  the dashboard — the one surface that reaches you before you open the trip at all.
 - **Change alerts.** Delays, cancellations, diversions and gate changes surface as
-  native trip warnings, and — while you have TREK open — a deduplicated bell/email
-  notification in your own language.
+  native trip warnings and — while you have TREK open — as a deduplicated bell/email
+  notification in your own language. Each user chooses whether to get them at all and
+  from how many minutes of delay.
+- **Fresh without you.** A background job refreshes flights that are in the air or
+  close to departure, so the warnings, map, PDF, calendar, table column and dashboard
+  badge are right even when nobody has the widget open. Edits and deletions of a
+  reservation are picked up as they happen, and when one trip member refreshes or
+  corrects a flight, every other member's open card updates straight away.
 - **Quota-aware.** The free AeroDataBox tier is ~600 requests/month, so the refresh
-  interval follows time-to-departure and polling pauses when the tab is hidden.
+  interval follows time-to-departure, polling pauses when the tab is hidden, forced
+  refreshes are rate-limited per reservation, and once the monthly ceiling is reached
+  the plugin falls back to adsb.fi alone rather than failing.
+- **Answers a data-subject request.** The per-user notification and calendar rows it
+  stores go into your TREK account export and are removed when the account is deleted.
 - **Stays out of the way** on non-flight reservations, and works in light and dark
   theme, German and English.
 
@@ -91,12 +122,20 @@ them with `npm run screenshots`.
 | `db:own` | Stores the flight number linked to each reservation and a short-lived response cache in the plugin's own SQLite database. |
 | `db:read:trips` | Reads the reservation to auto-detect its flight number — and is the membership check that authorises every request. |
 | `db:meta` | Best-effort mirror of the chosen flight number onto the reservation so other TREK surfaces can read it. |
-| `notify:send` | Sends a bell/email notification to you (only) when a tracked flight's delay, gate or status changes while TREK is open. |
+| `notify:send` | Sends a bell/email notification to you (only) when a tracked flight's delay, gate or status changes. |
 | `weather:read` | Shows the destination weather for the arrival day (host-cached forecast broker). |
+| `jobs:run` | Runs the background refresh for flights that are in the air or close to departure, so the trip warnings, map, PDF, calendar, table column and dashboard badge are right even when nobody has opened the widget. It also prunes old rows. |
+| `events:subscribe` | Reacts to reservation edits and deletions, so a deleted flight leaves the map, the PDF and your calendar immediately instead of lingering there for hours, and an edited flight number is re-detected the next time the card is opened. |
+| `ws:broadcast:trip` | When one trip member refreshes or corrects a flight, every other member's open card updates immediately instead of waiting for its next poll. |
 | `hook:trip-warning-provider` | Shows delayed/cancelled flights as native trip warnings in the planner. |
 | `hook:map-marker-provider` | Plots your flights' airports and live aircraft on TREK's own trip map. |
+| `hook:map-layer-provider` | Draws the great-circle route between the departure and arrival airports on that same trip map, with the flown part solid and the remainder dashed. |
+| `hook:day-schedule-provider` | Adds each flight to its day in the plan with its block time, so the day's total travel time includes the flight. |
+| `hook:table-contributor` | Adds a live flight-status column to the reservations table. |
+| `hook:trip-card-provider` | Puts a delay or cancellation badge on the trip card on your dashboard — the only surface that reaches you before you open the trip. |
 | `hook:pdf-section-provider` | Adds a flights section to the exported trip PDF. |
 | `hook:calendar-source` | Puts your flights (with live-adjusted times) into TREK's calendar. |
+| `hook:user-data` | Implements TREK's data-rights hook, so the per-user notification and calendar rows this plugin stores are included in an account export and removed when the account is deleted. |
 | `http:outbound` | Marks the plugin as making outbound HTTP calls. |
 | `http:outbound:aerodatabox.p.rapidapi.com` | Fetches flight schedule, status, gate and delay data from AeroDataBox. |
 | `http:outbound:opendata.adsb.fi` | Fetches the live aircraft position from the adsb.fi open-data API. |
@@ -119,8 +158,13 @@ fixes in `server/data/airline-overrides.json`.
 npm install
 npm run build:airlines   # regenerate the airline dataset (fails on a probe mismatch)
 npm run screenshots      # regenerate docs/img/*
-npx trek-plugin-sdk validate .
+./node_modules/.bin/trek-plugin validate .
 ```
+
+Building against TREK 4 needs **`trek-plugin-sdk` 1.6.0 or newer**: 1.5.0's permission
+list predates TREK 4, so it does not know `hook:map-layer-provider` or
+`hook:day-schedule-provider` and rejects the manifest outright. Run the locally
+installed binary rather than `npx -y trek-plugin-sdk`, which resolves to 1.5.0.
 
 See **[Development](https://github.com/fbnlrz/trek-track/wiki/Development)** for the
 release process, the override policy for airline codes, and the platform gotchas worth
