@@ -9,7 +9,7 @@
   "license": "MIT",
   "icon": "Plane",
   "type": "widget",
-  "trek": ">=4.0.0 <5.0.0",
+  "trek": ">=4.0.0 <6.0.0",
   "nativeModules": false,
   "permissions": [
     "db:own",
