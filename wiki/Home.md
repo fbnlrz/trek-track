@@ -31,7 +31,7 @@ bell/email notification while TREK is open. Since 2.0.0 each user decides under
 **Settings → Plugins → Flight Tracker** whether to receive those alerts at all, and
 from how many minutes of delay.
 
-Requires **TREK 4.0.0 or newer**. The range `>=4.0.0 <5.0.0` is enforced at install and
+Requires **TREK 4.0.0 or newer**. The range `>=4.0.0 <6.0.0` is enforced at install and
 re-checked at activation, with no admin override, so TREK 3.x instances stay on
 **1.8.0** — the store resolves "install latest" to the newest version an instance can
 run, and refuses an update that would take a working plugin out of compatibility.

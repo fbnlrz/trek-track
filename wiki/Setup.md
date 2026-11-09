@@ -1,6 +1,6 @@
 # Setup
 
-Requires **TREK 4.0.0 or newer**. The manifest declares `>=4.0.0 <5.0.0`; TREK enforces
+Requires **TREK 4.0.0 or newer**. The manifest declares `>=4.0.0 <6.0.0`; TREK enforces
 that at install and re-checks it at activation, and an admin cannot override it.
 
 On a **TREK 3.x instance the supported build is 1.8.0** and the store keeps serving it:

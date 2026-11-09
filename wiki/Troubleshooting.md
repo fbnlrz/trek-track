@@ -81,7 +81,7 @@ If a key *is* set, check for:
 
 - **Not a flight.** On hotels, trains and other reservation types the widget collapses
   to a 1 px sliver by design.
-- **TREK older than 4.0.0.** Since 2.0.0 the plugin declares `>=4.0.0 <5.0.0` and will
+- **TREK older than 4.0.0.** Since 2.1.0 the plugin declares `>=4.0.0 <6.0.0` and will
   neither install nor activate below that; see the next section.
 - **Not activated**, or its permissions were never approved (Admin → Plugins). 2.0.0
   requests eight permissions 1.8.0 did not, so an **update needs re-approval** before
@@ -89,7 +89,7 @@ If a key *is* set, check for:
 
 ## It will not install, or stopped activating after a TREK upgrade
 
-2.0.0 requires **TREK 4.0.0 or newer** (`>=4.0.0 <5.0.0`). TREK checks that range at
+2.1.0 requires **TREK 4.0.0 or newer** (`>=4.0.0 <6.0.0`). TREK checks that range at
 install *and* re-checks it at activation, and there is no admin override — the range is
 the plugin's own statement about where it works.
 

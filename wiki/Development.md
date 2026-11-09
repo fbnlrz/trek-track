@@ -195,7 +195,7 @@ maintainer-set top-level `reviewedAt` and `boundOwner` fields, and keep prior ve
 in `versions`, newest first. `entry --sign` regenerates only the current version block,
 so re-add those by hand.
 
-Its `trek` field carries the manifest's range verbatim — for 2.0.0, `">=4.0.0 <5.0.0"`.
+Its `trek` field carries the manifest's range verbatim — for 2.1.0, `">=4.0.0 <6.0.0"`.
 It is the only compatibility field a new version block needs, and CI checks it against
 the manifest at the pinned commit. **Leave the 1.8.0 block in `versions[]` untouched**:
 TREK 3.x instances resolve to it, and removing it would strand them.
