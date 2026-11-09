@@ -5,7 +5,7 @@ under each reservation card in the trip planner and shows the real-time status o
 flight — combining scheduled data from **AeroDataBox** with the actual aircraft
 position from the free **adsb.fi** open-data network.
 
-Requires **TREK 4.0.0 or newer** (`>=4.0.0 <5.0.0`). TREK checks that range at install
+Requires **TREK 4.0.0 or newer** (`>=4.0.0 <6.0.0`, tested on 5.1.2). TREK checks that range at install
 *and* again at activation, and there is no admin override — so on a TREK 3.x instance
 the store keeps serving **1.8.0**, which stays the supported build there. "Install
 latest" resolves to the newest version an instance can actually run, and an update that
